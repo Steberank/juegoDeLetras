@@ -53,10 +53,10 @@ export const handleSquareClick = (
 export const handleKeyPress = (
   event,
   board,
-  setBoard,
+  setBoard, // No lo usaremos directamente para setear el board con los colores, solo para pasar a onAttemptSubmit
   activeSquareId,
   setActiveSquareId,
-  filaActual, // Usamos directamente este prop
+  filaActual,
   setFilaActual,
   onAttemptSubmit
 ) => {
@@ -66,7 +66,7 @@ export const handleKeyPress = (
   }
 
   const keyPressed = event.key.toUpperCase();
-  let newBoard = [...board];
+  let newBoard = [...board]; // Copia el board inicial que recibimos
   const activeSquare = newBoard.find(square => square.id === activeSquareId);
 
   if (!activeSquare || activeSquare.isEditable === 0) {
@@ -86,72 +86,60 @@ export const handleKeyPress = (
 
     console.log(`Fila ${filaActual} completada.`);
 
-    // 1. Crear el array "intentoEnviado" con las letras de la fila actual
     const intentoEnviado = squaresInCurrentRow
       .sort((a, b) => a.columna - b.columna)
       .map(s => s.letter);
     console.log("Intento enviado:", intentoEnviado);
 
-    // 2. Enviar el array "intentoEnviado" a Main.jsx a través del callback
-    if (onAttemptSubmit) {
-      onAttemptSubmit(intentoEnviado, filaActual);
-    }
-
-    // 3. Modificar isEditable a 0 para la filaActual y desactivar los cuadrados
+    // Desactivar todos los cuadrados de la fila actual y hacerlos no editables
     squaresInCurrentRow.forEach(square => {
-      newBoard = UpdateSquareProps(newBoard, square.fila, square.columna, { isActive: 0, isEditable: 0 });
+        newBoard = UpdateSquareProps(newBoard, square.fila, square.columna, { isActive: 0, isEditable: 0 });
     });
-    console.log(`Fila ${filaActual} ahora es no editable.`);
 
-  // 4. Verificar si la fila actual es la última
-  if (filaActual === FILAS - 1) {
-    console.log(`La fila ${filaActual} es la última. Juego terminado (lógica por implementar).`);
-    
-    // Solo actualizar las propiedades de edición, NO el board completo aún
-     newBoard = newBoard.map(square => ({ ...square, isActive: 0 }));
-    setActiveSquareId(null); // Desactivar cualquier cuadrado activo si el juego termina
-    setBoard(newBoard);
-    
-    // NO llamar setBoard aquí - compararPalabras se encargará de actualizar el tablero
-    // con los colores correctos y luego el efecto se encargará del resto
-    return; // Fin del juego por ahora
-  }
+    // Si no es la última fila, prepara la próxima fila
+    if (filaActual < FILAS - 1) {
+      const proximaFila = filaActual + 1;
+      const squaresInNextRow = newBoard.filter(s => s.fila === proximaFila);
+      squaresInNextRow.forEach(square => {
+        newBoard = UpdateSquareProps(newBoard, square.fila, square.columna, { isEditable: 1 });
+      });
+      console.log(`Fila ${proximaFila} ahora es editable.`);
 
-    // 5. Si no es la última fila: filaActual = filaActual + 1
-    // La actualización real se hace al final con setFilaActual
-    // Para las operaciones intermedias, podemos usar (filaActual + 1)
-    const proximaFila = filaActual + 1; // Variable temporal para referenciar la próxima fila en esta ejecución
+      const firstSquareOfNextRowId = (proximaFila * COLUMNAS) + 0;
+      const firstSquareOfNextRow = newBoard.find(s => s.id === firstSquareOfNextRowId);
 
-    // 6. Para la próxima fila (proximaFila), modificar isEditable = 1
-    const squaresInNextRow = newBoard.filter(s => s.fila === proximaFila); // Usamos proximaFila aquí
-    squaresInNextRow.forEach(square => {
-      newBoard = UpdateSquareProps(newBoard, square.fila, square.columna, { isEditable: 1 });
-    });
-    console.log(`Fila ${proximaFila} ahora es editable.`);
-
-    // 7. Activar el cuadrado en la columna 0 de la nueva fila
-    const firstSquareOfNextRowId = (proximaFila * COLUMNAS) + 0; // Usamos proximaFila aquí
-    const firstSquareOfNextRow = newBoard.find(s => s.id === firstSquareOfNextRowId);
-
-    if (firstSquareOfNextRow && firstSquareOfNextRow.isEditable === 1) {
-      newBoard = UpdateSquareProps(newBoard, firstSquareOfNextRow.fila, firstSquareOfNextRow.columna, { isActive: 1 });
-      setFilaActual(proximaFila); // <-- ¡Aquí actualizamos el estado filaActual en Main.jsx!
-      setActiveSquareId(firstSquareOfNextRowId);
+      if (firstSquareOfNextRow && firstSquareOfNextRow.isEditable === 1) {
+        newBoard = UpdateSquareProps(newBoard, firstSquareOfNextRow.fila, firstSquareOfNextRow.columna, { isActive: 1 });
+        setFilaActual(proximaFila); 
+        setActiveSquareId(firstSquareOfNextRowId);
+        console.log(`Nuevo Square activo: ID ${firstSquareOfNextRowId} en Fila: ${proximaFila}, Columna: 0`);
+      } else {
+        console.error(`Error: No se encontró o no es editable el primer Square de la fila ${proximaFila}.`);
+        // Si no se puede activar el siguiente, desactiva el actual
+        newBoard = UpdateSquareProps(newBoard, activeSquare.fila, activeSquare.columna, { isActive: 0 });
+        setActiveSquareId(null);
+      }
     } else {
-      console.error(`Error: No se encontró o no es editable el primer Square de la fila ${proximaFila}.`);
-      newBoard = UpdateSquareProps(newBoard, activeSquare.fila, activeSquare.columna, { isActive: 0 });
-      setActiveSquareId(null);
+        // Si es la última fila, solo desactiva el square actual y quita la edición
+        newBoard = UpdateSquareProps(newBoard, activeSquare.fila, activeSquare.columna, { isActive: 0, isEditable: 0 });
+        setActiveSquareId(null); // No hay más cuadrados activos al final del juego
+        console.log(`La fila ${filaActual} es la última. Juego terminado.`);
+    }
+
+    // Ahora, pasa la 'newBoard' (con las actualizaciones de 'isActive' y 'isEditable')
+    // a 'onAttemptSubmit', que a su vez llamará a 'compararPalabras'.
+    // 'compararPalabras' será la ÚNICA que llame a 'setBoard' al final.
+    if (onAttemptSubmit) {
+      onAttemptSubmit(intentoEnviado, filaActual, newBoard); // Pasa también la newBoard
     }
     
-    setBoard(newBoard);
     return;
   }
 
-  // --- Lógica para BACKSPACE (sin cambios) ---
+  // --- Lógica para BACKSPACE  ---
   if (event.key === 'Backspace') {
     if (activeSquare.letter !== '') {
       newBoard = UpdateSquareProps(newBoard, activeSquare.fila, activeSquare.columna, { letter: '' });
-      console.log(`Letra borrada de Square ID: ${activeSquareId}.`);
     } else {
       if (activeSquare.columna === 0) {
         console.log(`Square ID: ${activeSquareId} está en la columna 0 y no tiene letra. No se retrocede.`);
@@ -160,8 +148,6 @@ export const handleKeyPress = (
       }
 
       newBoard = UpdateSquareProps(newBoard, activeSquare.fila, activeSquare.columna, { isActive: 0 });
-      console.log(`Desactivado Square ID: ${activeSquareId}.`);
-
       const prevColumn = activeSquare.columna - 1;
       const prevSquareId = (activeSquare.fila * COLUMNAS) + prevColumn;
       const prevSquare = newBoard.find(s => s.id === prevSquareId);
@@ -169,11 +155,9 @@ export const handleKeyPress = (
       if (prevSquare && prevSquare.isEditable === 1) {
         newBoard = UpdateSquareProps(newBoard, prevSquare.fila, prevSquare.columna, { isActive: 1 });
         setActiveSquareId(prevSquareId);
-        console.log(`Activado Square ID anterior: ${prevSquareId}.`);
       } else {
         newBoard = UpdateSquareProps(newBoard, activeSquare.fila, activeSquare.columna, { isActive: 1 });
         setActiveSquareId(activeSquareId);
-        console.log(`Error: No se pudo retroceder a Square anterior editable. Manteniendo activo en ID: ${activeSquareId}`);
       }
     }
     
@@ -186,8 +170,6 @@ export const handleKeyPress = (
 
   if (isLetter) {
     newBoard = UpdateSquareProps(newBoard, activeSquare.fila, activeSquare.columna, { letter: keyPressed });
-    console.log(`Letra "${keyPressed}" ingresada en Square ID: ${activeSquareId}`);
-
     if (activeSquare.columna < COLUMNAS - 1) {
       const nextColumn = activeSquare.columna + 1;
       const nextSquareId = (activeSquare.fila * COLUMNAS) + nextColumn;
@@ -197,14 +179,8 @@ export const handleKeyPress = (
         newBoard = UpdateSquareProps(newBoard, activeSquare.fila, activeSquare.columna, { isActive: 0 });
         newBoard = UpdateSquareProps(newBoard, nextSquare.fila, nextSquare.columna, { isActive: 1 });
         setActiveSquareId(nextSquareId);
-        console.log(`Moviendo activo de ID ${activeSquareId} a ID ${nextSquareId}`);
-      } else {
-        console.log(`No se puede mover a un Square siguiente editable. Permanece en ID: ${activeSquareId}`);
       }
-    } else {
-      console.log(`Square ID: ${activeSquareId} está en la última columna. No se mueve al siguiente.`);
     }
-    
     setBoard(newBoard);
     return;
   }

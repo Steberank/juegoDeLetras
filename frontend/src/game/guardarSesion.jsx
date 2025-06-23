@@ -1,0 +1,32 @@
+// frontend/src/game/guardarSesion.jsx
+
+import { use, useState } from "react";
+
+/**
+ * Guarda el estado actual del juego en el almacenamiento local del navegador.
+ * Esto permite que el jugador retome la partida donde la dejó.
+ * @param {Array<Object>} board - El array que representa el estado actual del tablero de juego.
+ * @param {number} filaActual - El índice de la fila en la que el jugador se encuentra actualmente.
+ * @param {string} palabraApi - La palabra secreta del día que se está jugando.
+ */
+export const guardarSesion = (board, filaActual, palabraApi) => {
+  try {
+    //const[filaGuardada, setFilaGuardada] = useState();
+    //setFilaGuardada(filaActual + 1);
+    const estadoJuego = {
+      board: board,
+      filaActual: filaActual,
+      palabraApi: palabraApi,
+      // Opcional: podrías añadir una marca de tiempo o un ID de juego para futuras expansiones
+      // timestamp: new Date().toISOString(), 
+    };
+
+    // Convertimos el objeto a una cadena JSON antes de guardarlo
+    localStorage.setItem('sesionPrevia', JSON.stringify(estadoJuego));
+    console.log('Estado del juego guardado exitosamente en el cache.');
+
+  } catch (error) {
+    console.error('Error al guardar el estado del juego en el cache:', error);
+    // Aquí podrías añadir una lógica para notificar al usuario que no se pudo guardar
+  }
+};

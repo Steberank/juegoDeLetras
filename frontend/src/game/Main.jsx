@@ -1,11 +1,12 @@
 // frontend/src/game/Main.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createInitialBoard, renderBoard, activarPrimeraFila} from './Tablero';
 import { generateMockSession } from './generateMockSession';
 import { handleSquareClick, handleKeyPress } from './ManejarInputs';
 import { COLUMNAS, FILAS } from './Constantes';
 import { UpdateSquareProps } from './UpdateSquareProps';
 import { compararPalabras } from './compararPalabras';
+import { guardarSesion } from './guardarSesion';
 
 const Main = () => {
   const [board, setBoard] = useState([]);
@@ -84,25 +85,18 @@ const Main = () => {
     fetchPalabraDelDia();
   }, []);
 
- const handleIntentoEnviado = (ArrayIntento, filaDelIntento) => {
-  console.log("Recibido intento en Main.jsx:", ArrayIntento, "para fila:", filaDelIntento);
-  setIntentoEnviado(ArrayIntento); 
+const handleGuardarJuego = useCallback((currentBoard, currentFilaActual) => {
+  guardarSesion(currentBoard, currentFilaActual, palabraDelDia);
+}, [palabraDelDia]);
 
-  // Usar filaDelIntento en lugar de filaActual
-  compararPalabras(ArrayIntento, palabraDelDia, filaDelIntento, board, setBoard);
-};
+const handleIntentoEnviado = useCallback((ArrayIntento, filaDelIntento, boardPreModificado) => {
+    console.log("Recibido intento en Main.jsx:", ArrayIntento, "para fila:", filaDelIntento);
+    setIntentoEnviado(ArrayIntento);
 
-  // NUEVO: useEffect para manejar la comparación de palabras
-  useEffect(() => {
-    if (intentoEnviado && palabraDelDia && board.length > 0) {
-      console.log("Ejecutando comparación de palabras...");
-      // Usar setTimeout para asegurar que el estado se ha actualizado
-      setTimeout(() => {
-        compararPalabras(intentoEnviado, palabraDelDia, filaActual - 1, board, setBoard);
-        setIntentoEnviado(null); // Limpiar el intento después de procesarlo
-      }, 100);
-    }
-  }, [intentoEnviado, palabraDelDia, board, filaActual]);
+    // Pasar el board que ya viene modificado por handleKeyPress
+    // compararPalabras lo usará como base y le agregará los colores
+    compararPalabras(ArrayIntento, palabraDelDia, filaDelIntento, boardPreModificado, setBoard, handleGuardarJuego);
+},[palabraDelDia, setBoard, handleGuardarJuego]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
