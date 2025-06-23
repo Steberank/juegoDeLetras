@@ -1,0 +1,40 @@
+.popup-message-container {
+  /* Posicionamiento inicial: fuera de pantalla, invisible */
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-150%); /* Inicia arriba, fuera de pantalla */
+  opacity: 0; /* Inicia invisible */
+  
+  /* Estilos visuales del popup */
+  background-color: #131416;
+  border-radius: 8px;
+  outline: 2px solid #27272A;
+  padding: 15px 25px;
+  color: #E0E0E0;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-align: center;
+  z-index: 1000;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none; /* No interactúa con eventos de ratón cuando está oculto/en transición */
+  white-space: nowrap; /* Evita que el texto se divida */
+
+  /* Transición por defecto para las propiedades que se animarán */
+  /* Esta es la transición para la entrada */
+  transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+/* Estado 'entering': Se desliza hacia abajo y aparece */
+.popup-message-container.entering {
+  transform: translateX(-50%) translateY(0); /* Se desliza a la posición visible */
+  opacity: 1; /* Se vuelve completamente visible */
+}
+
+/* Estado 'exiting': Se desliza a la derecha y se desvanece */
+.popup-message-container.exiting {
+  transform: translateX(150%) translateY(0); /* Se desliza hacia la derecha fuera de pantalla */
+  opacity: 0; /* Se desvanece */
+  /* Transición específica para la salida (puede ser diferente duración/timing) */
+  transition: transform 0.7s ease-in, opacity 0.7s ease-in; 
+}
