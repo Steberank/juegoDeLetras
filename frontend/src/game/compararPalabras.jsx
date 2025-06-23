@@ -1,6 +1,6 @@
 // frontend/src/game/compararPalabras.jsx
 import { UpdateSquareProps } from './UpdateSquareProps';
-import { COLORS } from './Constantes'; // Asegúrate de que COLORS esté definido aquí
+import { COLORS, FILAS } from './Constantes'; // Agregar FILAS a la importación
 
 /**
  * Compara el intento del usuario con la palabra del día y actualiza los colores de los Squares.
@@ -55,6 +55,14 @@ export const compararPalabras = (intentoEnviado, palabraApi, filaActual, board, 
     }
   });
 
-  setBoard(newBoard); // Actualiza el estado del tablero con los nuevos colores
+  // Paso 3: Si es la última fila, deshabilitar la fila actual
+  if (filaActual === FILAS - 1) {
+    squaresToUpdate.forEach(square => {
+      newBoard = UpdateSquareProps(newBoard, square.fila, square.columna, { isActive: 0, isEditable: 0 });
+    });
+    console.log(`Fila ${filaActual} (última fila) deshabilitada. Juego terminado.`);
+  }
+
+  setBoard(newBoard); // Actualiza el estado del tablero con los nuevos colores y estado final
   console.log("Colores de los Squares actualizados.");
 };

@@ -25,14 +25,12 @@ export const handleSquareClick = (
       if (prevActiveSquare) {
         // Usa UpdateSquareProps para actualizar la copia del tablero
         newBoard = UpdateSquareProps(newBoard, prevActiveSquare.fila, prevActiveSquare.columna, { isActive: 0 });
-        console.log(`Desactivado Square ID: ${prevActiveSquare.id}`);
       }
     }
 
     // Paso 2: Activar el Square en el que se hizo clic
     // Siempre activamos el Square clicado si es editable. Si ya estaba activo, se mantiene activo (o podrías añadir lógica para desactivarlo si quieres un toggle)
     newBoard = UpdateSquareProps(newBoard, clickedSquare.fila, clickedSquare.columna, { isActive: 1 });
-    console.log(`Activado Square ID: ${clickedId}`);
 
     setActiveSquareId(clickedId);
     setBoard(newBoard);
@@ -96,7 +94,7 @@ export const handleKeyPress = (
 
     // 2. Enviar el array "intentoEnviado" a Main.jsx a través del callback
     if (onAttemptSubmit) {
-      onAttemptSubmit(intentoEnviado);
+      onAttemptSubmit(intentoEnviado, filaActual);
     }
 
     // 3. Modificar isEditable a 0 para la filaActual y desactivar los cuadrados
@@ -105,13 +103,19 @@ export const handleKeyPress = (
     });
     console.log(`Fila ${filaActual} ahora es no editable.`);
 
-    // 4. Verificar si la fila actual es la última
-    if (filaActual === FILAS - 1) {
-      console.log(`La fila ${filaActual} es la última. Juego terminado (lógica por implementar).`);
-      setBoard(newBoard); // Actualiza el tablero con la fila deshabilitada
-      setActiveSquareId(null); // Desactivar cualquier cuadrado activo si el juego termina
-      return; // Fin del juego por ahora
-    }
+  // 4. Verificar si la fila actual es la última
+  if (filaActual === FILAS - 1) {
+    console.log(`La fila ${filaActual} es la última. Juego terminado (lógica por implementar).`);
+    
+    // Solo actualizar las propiedades de edición, NO el board completo aún
+     newBoard = newBoard.map(square => ({ ...square, isActive: 0 }));
+    setActiveSquareId(null); // Desactivar cualquier cuadrado activo si el juego termina
+    setBoard(newBoard);
+    
+    // NO llamar setBoard aquí - compararPalabras se encargará de actualizar el tablero
+    // con los colores correctos y luego el efecto se encargará del resto
+    return; // Fin del juego por ahora
+  }
 
     // 5. Si no es la última fila: filaActual = filaActual + 1
     // La actualización real se hace al final con setFilaActual
@@ -133,7 +137,6 @@ export const handleKeyPress = (
       newBoard = UpdateSquareProps(newBoard, firstSquareOfNextRow.fila, firstSquareOfNextRow.columna, { isActive: 1 });
       setFilaActual(proximaFila); // <-- ¡Aquí actualizamos el estado filaActual en Main.jsx!
       setActiveSquareId(firstSquareOfNextRowId);
-      console.log(`Nuevo Square activo: ID ${firstSquareOfNextRowId} en Fila: ${proximaFila}, Columna: 0`);
     } else {
       console.error(`Error: No se encontró o no es editable el primer Square de la fila ${proximaFila}.`);
       newBoard = UpdateSquareProps(newBoard, activeSquare.fila, activeSquare.columna, { isActive: 0 });

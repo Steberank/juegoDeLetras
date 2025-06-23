@@ -84,12 +84,25 @@ const Main = () => {
     fetchPalabraDelDia();
   }, []);
 
-  const handleIntentoEnviado = (ArrayIntento) => {
-    console.log("Recibido intento en Main.jsx:", ArrayIntento);
-    setIntentoEnviado(ArrayIntento); 
+ const handleIntentoEnviado = (ArrayIntento, filaDelIntento) => {
+  console.log("Recibido intento en Main.jsx:", ArrayIntento, "para fila:", filaDelIntento);
+  setIntentoEnviado(ArrayIntento); 
 
-    compararPalabras(ArrayIntento, palabraDelDia, filaActual, board, setBoard);
-  };
+  // Usar filaDelIntento en lugar de filaActual
+  compararPalabras(ArrayIntento, palabraDelDia, filaDelIntento, board, setBoard);
+};
+
+  // NUEVO: useEffect para manejar la comparación de palabras
+  useEffect(() => {
+    if (intentoEnviado && palabraDelDia && board.length > 0) {
+      console.log("Ejecutando comparación de palabras...");
+      // Usar setTimeout para asegurar que el estado se ha actualizado
+      setTimeout(() => {
+        compararPalabras(intentoEnviado, palabraDelDia, filaActual - 1, board, setBoard);
+        setIntentoEnviado(null); // Limpiar el intento después de procesarlo
+      }, 100);
+    }
+  }, [intentoEnviado, palabraDelDia, board, filaActual]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
