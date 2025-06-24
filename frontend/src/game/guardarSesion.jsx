@@ -12,6 +12,15 @@ import { use, useState } from "react";
  */
 export const guardarSesion = (board, filaActual, palabraApi, gameOver) => {
   const filaGuardada = filaActual + 1;
+
+  console.log('=== DEBUGGING guardarSesion ===');
+  console.log('Parámetros recibidos:');
+  console.log('- board:', board?.length ? `Array con ${board.length} elementos` : 'undefined/null');
+  console.log('- filaActual:', filaActual, 'tipo:', typeof filaActual);
+  console.log('- palabraApi:', palabraApi, 'tipo:', typeof palabraApi);
+  console.log('- gameOver:', gameOver, 'tipo:', typeof gameOver);
+  console.log('================================');
+  
   try {
     //const[filaGuardada, setFilaGuardada] = useState();
     //setFilaGuardada(filaActual + 1);

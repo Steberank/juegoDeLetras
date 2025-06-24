@@ -47,6 +47,7 @@ export const compararPalabras = (intentoEnviado, palabraApi, filaActual, board, 
   setBoard(newBoard); 
   
   if(guardarSesion){
+    console.log('currentGameOver: ', currentGameOver);
     guardarSesion(newBoard, filaActual, palabraApi, currentGameOver)
   }
 };
