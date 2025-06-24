@@ -59,7 +59,8 @@ export const handleKeyPress = (
   filaActual,
   setFilaActual,
   onAttemptSubmit,
-  showMessage
+  showMessage,
+  onGameOverChange
 ) => {
   if (activeSquareId === null) {
     return;
@@ -118,6 +119,9 @@ export const handleKeyPress = (
         newBoard = UpdateSquareProps(newBoard, activeSquare.fila, activeSquare.columna, { isActive: 0, isEditable: 0 });
         setActiveSquareId(null); // No hay más cuadrados activos al final del juego
         console.log(`La fila ${filaActual} es la última. Juego terminado.`);
+        if(onGameOverChange){
+          onGameOverChange(-1);
+        }
     }
 
     // Ahora, pasa la 'newBoard' (con las actualizaciones de 'isActive' y 'isEditable')

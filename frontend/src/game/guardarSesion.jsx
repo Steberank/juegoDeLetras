@@ -8,8 +8,9 @@ import { use, useState } from "react";
  * @param {Array<Object>} board - El array que representa el estado actual del tablero de juego.
  * @param {number} filaActual - El índice de la fila en la que el jugador se encuentra actualmente.
  * @param {string} palabraApi - La palabra secreta del día que se está jugando.
+ * @param {number} gameOver
  */
-export const guardarSesion = (board, filaActual, palabraApi) => {
+export const guardarSesion = (board, filaActual, palabraApi, gameOver) => {
   const filaGuardada = filaActual + 1;
   try {
     //const[filaGuardada, setFilaGuardada] = useState();
@@ -18,6 +19,7 @@ export const guardarSesion = (board, filaActual, palabraApi) => {
       board: board,
       filaActual: filaGuardada,
       palabra: palabraApi,
+      gameOver: gameOver,
       // Opcional: podrías añadir una marca de tiempo o un ID de juego para futuras expansiones
       // timestamp: new Date().toISOString(), 
     };

@@ -15,7 +15,8 @@ const Main = () => {
   const [filaActual, setFilaActual] = useState(0);
   const [activeSquareId, setActiveSquareId] = useState(null);
   const [intentoEnviado, setIntentoEnviado] = useState(null); 
-  const [popupMessage, setPopupMessage] = useState(null); 
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [gameOver, setGameOver] = useState(0); // 0: juego activo, 1: gano, -1: perdio
 
   useEffect(() => {
     const fetchPalabraDelDia = async () => {
@@ -31,6 +32,7 @@ const Main = () => {
           let currentBoard = createInitialBoard();
           let currentFilaActual = 0;
           let currentActiveSquareId = 0;
+          let currentGameOver = 0;
 
           if (cachedSessionString) {
             try {
@@ -41,13 +43,19 @@ const Main = () => {
                 console.log("Palabra del caché coincide. Cargando sesión previa...");
                 currentBoard = cachedSession.board;
                 currentFilaActual = cachedSession.filaActual;
+                currentGameOver = cachedSession.gameOver || 0;
                 
-                const existingActiveSquare = currentBoard.find(s => s.isActive === 1);
-                if (!existingActiveSquare) {
-                  currentActiveSquareId = (currentFilaActual * COLUMNAS); 
-                  currentBoard = UpdateSquareProps(currentBoard, currentFilaActual, 0, { isActive: 1 });
+                if (currentGameOver !== 0) {
+                  console.log("El juego ya había terminado. GameOver:", currentGameOver);
+                  currentActiveSquareId = null;
                 } else {
-                  currentActiveSquareId = existingActiveSquare.id;
+                  const existingActiveSquare = currentBoard.find(s => s.isActive === 1);
+                  if (!existingActiveSquare) {
+                    currentActiveSquareId = (currentFilaActual * COLUMNAS); 
+                    currentBoard = UpdateSquareProps(currentBoard, currentFilaActual, 0, { isActive: 1 });
+                  } else {
+                    currentActiveSquareId = existingActiveSquare.id;
+                  }
                 }
 
               } else {
@@ -56,6 +64,7 @@ const Main = () => {
                 currentBoard = activarPrimeraFila(createInitialBoard());
                 currentFilaActual = 0;
                 currentActiveSquareId = 0;
+                currentGameOver = 0;
               }
             } catch (parseError) {
               console.error("Error al parsear el JSON del caché. Borrando caché.", parseError);
@@ -63,17 +72,20 @@ const Main = () => {
               currentBoard = activarPrimeraFila(createInitialBoard());
               currentFilaActual = 0;
               currentActiveSquareId = 0;
+              currentGameOver = 0;
             }
           } else {
             console.log("No se encontró sesión previa en caché. Iniciando juego nuevo.");
             currentBoard = activarPrimeraFila(createInitialBoard());
             currentFilaActual = 0;
             currentActiveSquareId = 0;
+            currentGameOver = 0;
           }
 
           setBoard(currentBoard);
           setFilaActual(currentFilaActual);
           setActiveSquareId(currentActiveSquareId);
+          setGameOver(currentGameOver);
 
         } else {
           console.error("Error del backend al obtener la palabra:", data.message);
@@ -86,18 +98,21 @@ const Main = () => {
     fetchPalabraDelDia();
   }, []);
 
-const handleGuardarJuego = useCallback((currentBoard, currentFilaActual) => {
-  guardarSesion(currentBoard, currentFilaActual, palabraDelDia);
+const handleGuardarJuego = useCallback((currentBoard, currentFilaActual, currentGameOver) => {
+  guardarSesion(currentBoard, currentFilaActual, palabraDelDia, currentGameOver);
 }, [palabraDelDia]);
 
 const handleIntentoEnviado = useCallback((ArrayIntento, filaDelIntento, boardPreModificado) => {
-    console.log("Recibido intento en Main.jsx:", ArrayIntento, "para fila:", filaDelIntento);
     setIntentoEnviado(ArrayIntento);
 
     // Pasar el board que ya viene modificado por handleKeyPress
     // compararPalabras lo usará como base y le agregará los colores
-    compararPalabras(ArrayIntento, palabraDelDia, filaDelIntento, boardPreModificado, setBoard, handleGuardarJuego);
+    compararPalabras(ArrayIntento, palabraDelDia, filaDelIntento, boardPreModificado, setBoard, handleGuardarJuego, setGameOver);
 },[palabraDelDia, setBoard, handleGuardarJuego]);
+
+const handleGameOverManejarInputs = useCallback((newGameOverValue) => {
+  setGameOver(newGameOverValue);
+}, []);
 
   const showMessage = useCallback((msg) => {
     setPopupMessage(msg);
@@ -107,6 +122,13 @@ const handleIntentoEnviado = useCallback((ArrayIntento, filaDelIntento, boardPre
   const handlePopupClosed = useCallback(() => {
     setPopupMessage(null);
   }, []);
+
+    useEffect(() => {
+    // Si el juego terminó, no procesar eventos de teclado
+    if (gameOver !== 0) {
+      return;
+    }
+  });
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -119,7 +141,8 @@ const handleIntentoEnviado = useCallback((ArrayIntento, filaDelIntento, boardPre
         filaActual,
         setFilaActual,
         handleIntentoEnviado,
-        showMessage
+        showMessage,
+        handleGameOverManejarInputs
       );
     };
 
@@ -137,11 +160,16 @@ const handleIntentoEnviado = useCallback((ArrayIntento, filaDelIntento, boardPre
     setFilaActual,
     handleIntentoEnviado,
     palabraDelDia,
+    handleGameOverManejarInputs
   ]);
 
   return (
     <div className="board-grid">
-      {renderBoard(board, (fila, columna, id) => handleSquareClick(fila, columna, id, board, setBoard, activeSquareId, setActiveSquareId))}
+      {renderBoard(board, (fila, columna, id) => {
+        // Solo permitir clicks si el juego no ha terminado
+        if (gameOver !== 0) return;
+        handleSquareClick(fila, columna, id, board, setBoard, activeSquareId, setActiveSquareId);
+      })}
       <MensajePopup 
         message={popupMessage} 
         duration={2000} // Opcional: 2 segundos de duración
