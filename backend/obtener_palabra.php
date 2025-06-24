@@ -45,7 +45,7 @@ require_once __DIR__ . '/database/db_conectar.php';
 $currentDate = date('Y-m-d');
 
 // Para propósitos de prueba, si quieres probar una fecha específica sin cambiar la del servidor:
-$currentDate = '2025-06-16'; // Ejemplo: para probar la palabra del 16 de junio de 2025
+//$currentDate = '2025-06-16'; // Ejemplo: para probar la palabra del 16 de junio de 2025
 
 // =============================================================================
 // 4. Preparar y ejecutar la consulta SQL

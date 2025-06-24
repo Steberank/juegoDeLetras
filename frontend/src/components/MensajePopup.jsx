@@ -48,13 +48,6 @@ const MensajePopup = ({ message, duration = 3000, onTransitionEndCallback }) => 
   }, [message, duration, displayMessage]); // Dependencias del efecto
 
   const handleTransitionEnd = (e) => {
-    // *** MUY IMPORTANTE PARA DEPURAR: ***
-    // Descomenta la siguiente línea para ver qué propiedad está terminando su transición.
-    // console.log('Transition ended for property:', e.propertyName, 'on target:', e.target, 'Current animationPhase:', animationPhase);
-
-    // Solo actuamos si la transición finalizada pertenece al contenedor principal del popup (no a un hijo)
-    // y si estamos en la fase de salida ('exiting') y la propiedad que finalizó es 'opacity'.
-    // La opacidad es la que indica que el popup ha terminado de desvanecerse.
     if (e.target === e.currentTarget && animationPhase === 'exiting' && e.propertyName === 'opacity') {
       setAnimationPhase('');    // Resetea la fase de animación
       setDisplayMessage(null);  // Borra el mensaje, lo que hará que el componente deje de renderizarse

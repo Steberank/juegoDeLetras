@@ -10,13 +10,14 @@ import { use, useState } from "react";
  * @param {string} palabraApi - La palabra secreta del día que se está jugando.
  */
 export const guardarSesion = (board, filaActual, palabraApi) => {
+  const filaGuardada = filaActual + 1;
   try {
     //const[filaGuardada, setFilaGuardada] = useState();
     //setFilaGuardada(filaActual + 1);
     const estadoJuego = {
       board: board,
-      filaActual: filaActual,
-      palabraApi: palabraApi,
+      filaActual: filaGuardada,
+      palabra: palabraApi,
       // Opcional: podrías añadir una marca de tiempo o un ID de juego para futuras expansiones
       // timestamp: new Date().toISOString(), 
     };

@@ -7,6 +7,7 @@ import { COLUMNAS, FILAS } from './Constantes';
 import { UpdateSquareProps } from './UpdateSquareProps';
 import { compararPalabras } from './compararPalabras';
 import { guardarSesion } from './guardarSesion';
+import MensajePopup from '../components/MensajePopup';
 
 const Main = () => {
   const [board, setBoard] = useState([]);
@@ -14,6 +15,7 @@ const Main = () => {
   const [filaActual, setFilaActual] = useState(0);
   const [activeSquareId, setActiveSquareId] = useState(null);
   const [intentoEnviado, setIntentoEnviado] = useState(null); 
+  const [popupMessage, setPopupMessage] = useState(null); 
 
   useEffect(() => {
     const fetchPalabraDelDia = async () => {
@@ -23,7 +25,6 @@ const Main = () => {
 
         if (data.success) {
           const palabraApi = data.palabra.toUpperCase();
-          console.log("Palabra del día obtenida de la API:", palabraApi);
           setPalabraDelDia(palabraApi);
 
           const cachedSessionString = localStorage.getItem('sesionPrevia');
@@ -98,6 +99,15 @@ const handleIntentoEnviado = useCallback((ArrayIntento, filaDelIntento, boardPre
     compararPalabras(ArrayIntento, palabraDelDia, filaDelIntento, boardPreModificado, setBoard, handleGuardarJuego);
 },[palabraDelDia, setBoard, handleGuardarJuego]);
 
+  const showMessage = useCallback((msg) => {
+    setPopupMessage(msg);
+  }, []);
+
+  // Función que se llamará cuando la animación de salida del popup termine
+  const handlePopupClosed = useCallback(() => {
+    setPopupMessage(null);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (event) => {
       handleKeyPress(
@@ -108,7 +118,8 @@ const handleIntentoEnviado = useCallback((ArrayIntento, filaDelIntento, boardPre
         setActiveSquareId,
         filaActual,
         setFilaActual,
-        handleIntentoEnviado
+        handleIntentoEnviado,
+        showMessage
       );
     };
 
@@ -131,6 +142,11 @@ const handleIntentoEnviado = useCallback((ArrayIntento, filaDelIntento, boardPre
   return (
     <div className="board-grid">
       {renderBoard(board, (fila, columna, id) => handleSquareClick(fila, columna, id, board, setBoard, activeSquareId, setActiveSquareId))}
+      <MensajePopup 
+        message={popupMessage} 
+        duration={2000} // Opcional: 2 segundos de duración
+        onTransitionEndCallback={handlePopupClosed} 
+      />
     </div>
   );
 };

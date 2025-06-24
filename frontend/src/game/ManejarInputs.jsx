@@ -58,10 +58,10 @@ export const handleKeyPress = (
   setActiveSquareId,
   filaActual,
   setFilaActual,
-  onAttemptSubmit
+  onAttemptSubmit,
+  showMessage
 ) => {
   if (activeSquareId === null) {
-    console.log("No hay Square activo. Ignorando entrada de teclado.");
     return;
   }
 
@@ -70,7 +70,6 @@ export const handleKeyPress = (
   const activeSquare = newBoard.find(square => square.id === activeSquareId);
 
   if (!activeSquare || activeSquare.isEditable === 0) {
-    console.log(`El Square activo (ID: ${activeSquareId}) no es editable o no se encontró.`);
     return;
   }
 
@@ -80,16 +79,14 @@ export const handleKeyPress = (
     const allSpacesFilled = squaresInCurrentRow.every(s => s.letter !== '');
 
     if (!allSpacesFilled) {
-      console.log(`Fila ${filaActual} no completada. No se puede avanzar.`);
+      showMessage('¡Debes ingresar 5 letras!')
       return;
     }
 
-    console.log(`Fila ${filaActual} completada.`);
 
     const intentoEnviado = squaresInCurrentRow
       .sort((a, b) => a.columna - b.columna)
       .map(s => s.letter);
-    console.log("Intento enviado:", intentoEnviado);
 
     // Desactivar todos los cuadrados de la fila actual y hacerlos no editables
     squaresInCurrentRow.forEach(square => {
@@ -103,7 +100,6 @@ export const handleKeyPress = (
       squaresInNextRow.forEach(square => {
         newBoard = UpdateSquareProps(newBoard, square.fila, square.columna, { isEditable: 1 });
       });
-      console.log(`Fila ${proximaFila} ahora es editable.`);
 
       const firstSquareOfNextRowId = (proximaFila * COLUMNAS) + 0;
       const firstSquareOfNextRow = newBoard.find(s => s.id === firstSquareOfNextRowId);
@@ -112,9 +108,7 @@ export const handleKeyPress = (
         newBoard = UpdateSquareProps(newBoard, firstSquareOfNextRow.fila, firstSquareOfNextRow.columna, { isActive: 1 });
         setFilaActual(proximaFila); 
         setActiveSquareId(firstSquareOfNextRowId);
-        console.log(`Nuevo Square activo: ID ${firstSquareOfNextRowId} en Fila: ${proximaFila}, Columna: 0`);
       } else {
-        console.error(`Error: No se encontró o no es editable el primer Square de la fila ${proximaFila}.`);
         // Si no se puede activar el siguiente, desactiva el actual
         newBoard = UpdateSquareProps(newBoard, activeSquare.fila, activeSquare.columna, { isActive: 0 });
         setActiveSquareId(null);
